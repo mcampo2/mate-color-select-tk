@@ -122,7 +122,7 @@ for col in COLORS:
     # Colors - create labels
     color = Label(colorsFrame, bg=COLORS[col][row], text="          ", relief=RIDGE)
     # Colors - add events
-    color.bind("<Double-Button>", lambda e: colorText.set(COLORS[col][row]))
+    color.bind("<Double-Button>", lambda e,col=col,row=row: colorText.set(COLORS[col][row]))
     # Colors - place elements
     color.grid(row=row+1, column=ord(col)-ord('A')+1, padx=1, pady=1)
 colorsFrame.grid(row=7, column=3, rowspan=1, columnspan=10)

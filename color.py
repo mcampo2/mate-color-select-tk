@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from tkinter import *
+import colorsys
 
 # Clone of mate-color-select Utility
 
@@ -21,6 +22,14 @@ root = Tk()
 root.title("MATE Color Selection")
 window = Frame(root, padx=5, pady=5)
 window.pack()
+
+# Color Preview
+colorText = StringVar()
+colorText.set("#FFFFFF")
+colorPreview = Canvas(window, bg="#FFFFFF", relief=RIDGE, width=200)
+previewSpacer = Label(window, text=" ")
+colorPreview.grid(row=1, column=1, rowspan=7, columnspan=1)
+previewSpacer.grid(row=1, column=2)
 
 # Hue
 hueText = StringVar()
@@ -61,12 +70,19 @@ spacer2 = Label(window, text="   ")
 spacer1.grid(row=1, column=7)
 spacer2.grid(row=1, column=8)
 
+def rgb(*args):
+  (red, green, blue) = args
+  red = format(red + int(colorText.get()[1:3], 16), '02X')[-2:]
+  green = format(green + int(colorText.get()[3:5], 16), '02X')[-2:]
+  blue = format(blue + int(colorText.get()[5:7], 16), '02X')[-2:]
+  colorText.set("#"+red+green+blue)
+
 # Red
 redText = StringVar()
 redLabel = Label(window, text="Red: ")
 redValue = Entry(window, justify=CENTER, textvariable=redText, width=4)
-redMinus = Button(window, text=" - ")
-redPlus = Button(window, text="+")
+redMinus = Button(window, text=" - ", command=lambda: rgb(-1, 0, 0))
+redPlus = Button(window, text="+", command=lambda: rgb(1, 0, 0))
 redLabel.grid(row=1, column=9, sticky=W)
 redValue.grid(row=1, column=10)
 redMinus.grid(row=1, column=11)
@@ -76,8 +92,8 @@ redPlus.grid(row=1, column=12)
 greenText = StringVar()
 greenLabel = Label(window, text="Green: ")
 greenValue = Entry(window, justify=CENTER, textvariable=greenText, width=4)
-greenMinus = Button(window, text=" - ")
-greenPlus = Button(window, text="+")
+greenMinus = Button(window, text=" - ", command=lambda: rgb(0, -1, 0))
+greenPlus = Button(window, text="+", command=lambda: rgb(0, 1, 0))
 greenLabel.grid(row=2, column=9, sticky=W)
 greenValue.grid(row=2, column=10)
 greenMinus.grid(row=2, column=11)
@@ -87,8 +103,8 @@ greenPlus.grid(row=2, column=12)
 blueText = StringVar()
 blueLabel = Label(window, text="Blue: ")
 blueValue = Entry(window, justify=CENTER, textvariable=blueText, width=4)
-blueMinus = Button(window, text=" - ")
-bluePlus = Button(window, text="+")
+blueMinus = Button(window, text=" - ", command=lambda: rgb(0, 0, -1))
+bluePlus = Button(window, text="+", command=lambda: rgb(0, 0, 1))
 blueLabel.grid(row=3, column=9, sticky=W)
 blueValue.grid(row=3, column=10)
 blueMinus.grid(row=3, column=11)
@@ -101,9 +117,18 @@ horizontalLine.grid(row=4, column=3, rowspan=1, columnspan=10)
 
 # Color Name
 def callback(*args): # TODO
-  print(colorText.get())
+  red = int(colorText.get()[1:3], 16)
+  green = int(colorText.get()[3:5], 16)
+  blue = int(colorText.get()[5:7], 16)
+  (hue, saturation, value) = colorsys.rgb_to_hsv(red/255, green/255, blue/255)
+  redText.set(red)
+  greenText.set(green)
+  blueText.set(blue)
+  hueText.set(round(hue*360))
+  saturationText.set(round(saturation*100))
+  valueText.set(round(value*100))
+  colorPreview["bg"] = colorText.get()
 
-colorText = StringVar()
 colorText.trace('w', callback)
 colorLabel = Label(window, text="Color name: ")
 colorValue = Entry(window, justify=LEFT, textvariable=colorText, width=16)
@@ -126,12 +151,6 @@ for col in COLORS:
     # Colors - place elements
     color.grid(row=row+1, column=ord(col)-ord('A')+1, padx=1, pady=1)
 colorsFrame.grid(row=7, column=3, rowspan=1, columnspan=10)
-
-# Color Preview
-colorPreview = Canvas(window, bg="#FFFFFF", relief=RIDGE, width=200)
-previewSpacer = Label(window, text=" ")
-colorPreview.grid(row=1, column=1, rowspan=7, columnspan=1)
-previewSpacer.grid(row=1, column=2)
 
 # Create an event loop
 window.mainloop()

@@ -33,34 +33,27 @@ colorPreview.grid(row=1, column=1, rowspan=7, columnspan=1)
 previewSpacer.grid(row=1, column=2)
 
 # make sure number is in bounds
-def bound(num, bound=0):
+def bound(num, bound):
   num = int("".join(re.findall('(\d|\.|\-)', str(num))).split('.')[0] or 0)
   bound = int("".join(re.findall('(\d|\.|\-)', str(bound))).split('.')[0] or 0)
-  if bound <= 0: return num
-  elif num < 0: return 0
+  if num < 0: return 0
   elif num > bound: return bound
   else: return round(num)
 
 # make sure number is in bounds
 # if out of bounds, continue on the other side
-def boundContinuous(num, bound=-100):
+def boundContinuous(num, bound):
   num = int("".join(re.findall('(\d|\.|\-)', str(num))).split('.')[0] or 0)
   bound = int("".join(re.findall('(\d|\.|\-)', str(bound))).split('.')[0] or 0)
-  if bound <= 0: return num
-  elif num < 0: return bound
+  if num < 0: return bound
   elif num > bound: return 0
   else: return round(num)
-
-# convert using int() or return 0
-def number(number):
-  try: number = int(number)
-  except: return 0
-  return number
 
 # sets the gui color using rgb
 def rgb(*args):
   # first get colors
-  (red, green, blue) = [number(x) for x in args]
+  try: (red, green, blue) = args
+  except: (red, green, blue) = (0, 0, 0)
   red = red + bound(redText.get(), 255)
   green = green + bound(greenText.get(), 255)
   blue = blue + bound(blueText.get(), 255)
@@ -78,7 +71,8 @@ def rgb(*args):
 # sets the gui color using hsv
 def hsv(*args):
   # first get hsv
-  (hue, saturation, value) = [number(x) for x in args]
+  try: (hue, saturation, value) = args
+  except: (hue, saturation, value) = (0, 0, 0)
   hue = boundContinuous(bound(hueText.get(), 360)+hue, 360)/360
   saturation = bound(bound(saturationText.get(), 100)+saturation, 100)/100
   value = bound(bound(valueText.get(), 100)+value, 100)/100
@@ -166,12 +160,12 @@ blueMinus.grid(row=3, column=11)
 bluePlus.grid(row=3, column=12)
 
 # Add Entry commands
-# hueText.trace('w', hsv)
-# saturationText.trace('w', hsv)
-# valueText.trace('w', hsv)
-# redText.trace('w', rgb)
-# greenText.trace('w', rgb)
-# blueText.trace('w', rgb)
+hueValue.bind('<Return>', hsv)
+saturationValue.bind('<Return>', hsv)
+valueValue.bind('<Return>', hsv)
+redValue.bind('<Return>', rgb)
+greenValue.bind('<Return>', rgb)
+blueValue.bind('<Return>', rgb)
 
 # Horizontal Line
 horizontalLine = Canvas(window, height=7)

@@ -33,26 +33,34 @@ colorPreview.grid(row=1, column=1, rowspan=7, columnspan=1)
 previewSpacer.grid(row=1, column=2)
 
 # make sure number is in bounds
-def bound(num, bound):
-  num = int("".join(re.findall('\d+', "0"+str(num))))
-  num = int(num)
-  if num < 0: return 0
+def bound(num, bound=0):
+  num = int("".join(re.findall('(\d|\.|\-)', str(num))).split('.')[0] or 0)
+  bound = int("".join(re.findall('(\d|\.|\-)', str(bound))).split('.')[0] or 0)
+  if bound <= 0: return num
+  elif num < 0: return 0
   elif num > bound: return bound
   else: return round(num)
 
 # make sure number is in bounds
 # if out of bounds, continue on the other side
-def boundContinuous(num, bound):
-  num = int("".join(re.findall('\d+', "0"+str(num))))
-  num = int(num)
-  if num < 0: return bound
+def boundContinuous(num, bound=-100):
+  num = int("".join(re.findall('(\d|\.|\-)', str(num))).split('.')[0] or 0)
+  bound = int("".join(re.findall('(\d|\.|\-)', str(bound))).split('.')[0] or 0)
+  if bound <= 0: return num
+  elif num < 0: return bound
   elif num > bound: return 0
   else: return round(num)
+
+# convert using int() or return 0
+def number(number):
+  try: number = int(number)
+  except: return 0
+  return number
 
 # sets the gui color using rgb
 def rgb(*args):
   # first get colors
-  (red, green, blue) = args
+  (red, green, blue) = [number(x) for x in args]
   red = red + bound(redText.get(), 255)
   green = green + bound(greenText.get(), 255)
   blue = blue + bound(blueText.get(), 255)
@@ -67,11 +75,10 @@ def rgb(*args):
   saturationText.set(round(saturation*100))
   valueText.set(round(value*100))
 
-
 # sets the gui color using hsv
 def hsv(*args):
   # first get hsv
-  (hue, saturation, value) = args
+  (hue, saturation, value) = [number(x) for x in args]
   hue = boundContinuous(bound(hueText.get(), 360)+hue, 360)/360
   saturation = bound(bound(saturationText.get(), 100)+saturation, 100)/100
   value = bound(bound(valueText.get(), 100)+value, 100)/100
@@ -158,13 +165,21 @@ blueValue.grid(row=3, column=10)
 blueMinus.grid(row=3, column=11)
 bluePlus.grid(row=3, column=12)
 
+# Add Entry commands
+# hueText.trace('w', hsv)
+# saturationText.trace('w', hsv)
+# valueText.trace('w', hsv)
+# redText.trace('w', rgb)
+# greenText.trace('w', rgb)
+# blueText.trace('w', rgb)
+
 # Horizontal Line
 horizontalLine = Canvas(window, height=7)
 horizontalLine.create_line(0, 7, 500, 7)
 horizontalLine.grid(row=4, column=3, rowspan=1, columnspan=10)
 
-# Color Name
-def callback(*args): # TODO
+# Color Name update trace
+def updateColorName(*args):
   red = int(colorText.get()[1:3], 16)
   green = int(colorText.get()[3:5], 16)
   blue = int(colorText.get()[5:7], 16)
@@ -174,7 +189,8 @@ def callback(*args): # TODO
   rgb(0,0,0)
   colorPreview["bg"] = colorText.get()
 
-colorText.trace('w', callback)
+# Color Name
+colorText.trace('w', updateColorName)
 colorLabel = Label(window, text="Color name: ")
 colorValue = Entry(window, justify=LEFT, textvariable=colorText, width=16)
 colorText.set("#FFFFFF")

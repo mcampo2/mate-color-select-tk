@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from tkinter import *
 import colorsys
+import re
 
 # Clone of mate-color-select Utility
 
@@ -31,12 +32,66 @@ previewSpacer = Label(window, text=" ")
 colorPreview.grid(row=1, column=1, rowspan=7, columnspan=1)
 previewSpacer.grid(row=1, column=2)
 
+# make sure number is in bounds
+def bound(num, bound):
+  num = int("".join(re.findall('\d+', "0"+str(num))))
+  num = int(num)
+  if num < 0: return 0
+  elif num > bound: return bound
+  else: return round(num)
+
+# make sure number is in bounds
+# if out of bounds, continue on the other side
+def boundContinuous(num, bound):
+  num = int("".join(re.findall('\d+', "0"+str(num))))
+  num = int(num)
+  if num < 0: return bound
+  elif num > bound: return 0
+  else: return round(num)
+
+# sets the gui color using rgb
+def rgb(*args):
+  # first get colors
+  (red, green, blue) = args
+  red = red + bound(redText.get(), 255)
+  green = green + bound(greenText.get(), 255)
+  blue = blue + bound(blueText.get(), 255)
+  (hue, saturation, value) = colorsys.rgb_to_hsv(red/255, green/255, blue/255)
+  # then convert to hex
+  red = format(bound(red, 255), '02X')[-2:]
+  green = format(bound(green, 255), '02X')[-2:]
+  blue = format(bound(blue, 255), '02X')[-2:]
+  # # then set colors
+  colorText.set("#"+red+green+blue)
+  hueText.set(round(hue*360))
+  saturationText.set(round(saturation*100))
+  valueText.set(round(value*100))
+
+
+# sets the gui color using hsv
+def hsv(*args):
+  # first get hsv
+  (hue, saturation, value) = args
+  hue = boundContinuous(bound(hueText.get(), 360)+hue, 360)/360
+  saturation = bound(bound(saturationText.get(), 100)+saturation, 100)/100
+  value = bound(bound(valueText.get(), 100)+value, 100)/100
+  # then get rgb
+  (red, green, blue) = colorsys.hsv_to_rgb(hue, saturation, value)
+  red = format(round(red*255), '02X')
+  green = format(round(green*255), '02X')
+  blue = format(round(blue*255), '02X')
+  # then set colors
+  colorText.set("#"+red+green+blue)
+  hueText.set(boundContinuous(hue*360, 360))
+  saturationText.set(bound(saturation*100, 100))
+  valueText.set(bound(value*100, 100))
+
 # Hue
 hueText = StringVar()
 hueLabel = Label(window, text="Hue: ")
 hueValue = Entry(window, justify=CENTER, textvariable=hueText, width=4)
-hueMinus = Button(window, text=" - ")
-huePlus = Button(window, text="+")
+hueMinus = Button(window, text=" - ", command=lambda: hsv(-1, 0, 0))
+huePlus = Button(window, text="+", command=lambda: hsv(1, 0, 0))
 hueLabel.grid(row=1, column=3, sticky=W)
 hueValue.grid(row=1, column=4)
 hueMinus.grid(row=1, column=5)
@@ -46,8 +101,8 @@ huePlus.grid(row=1, column=6)
 saturationText = StringVar()
 saturationLabel = Label(window, text="Saturation: ")
 saturationValue = Entry(window, justify=CENTER, textvariable=saturationText, width=4)
-saturationMinus = Button(window, text=" - ")
-saturationPlus = Button(window, text="+")
+saturationMinus = Button(window, text=" - ", command=lambda: hsv(0, -1, 0))
+saturationPlus = Button(window, text="+", command=lambda: hsv(0, 1, 0))
 saturationLabel.grid(row=2, column=3, sticky=W)
 saturationValue.grid(row=2, column=4)
 saturationMinus.grid(row=2, column=5)
@@ -57,8 +112,8 @@ saturationPlus.grid(row=2, column=6)
 valueText = StringVar()
 valueLabel = Label(window, text="Value: ")
 valueValue = Entry(window, justify=CENTER, textvariable=valueText, width=4)
-valueMinus = Button(window, text=" - ")
-valuePlus = Button(window, text="+")
+valueMinus = Button(window, text=" - ", command=lambda: hsv(0, 0, -1))
+valuePlus = Button(window, text="+", command=lambda: hsv(0, 0, 1))
 valueLabel.grid(row=3, column=3, sticky=W)
 valueValue.grid(row=3, column=4)
 valueMinus.grid(row=3, column=5)
@@ -69,13 +124,6 @@ spacer1 = Label(window, text="     ")
 spacer2 = Label(window, text="   ")
 spacer1.grid(row=1, column=7)
 spacer2.grid(row=1, column=8)
-
-def rgb(*args):
-  (red, green, blue) = args
-  red = format(red + int(colorText.get()[1:3], 16), '02X')[-2:]
-  green = format(green + int(colorText.get()[3:5], 16), '02X')[-2:]
-  blue = format(blue + int(colorText.get()[5:7], 16), '02X')[-2:]
-  colorText.set("#"+red+green+blue)
 
 # Red
 redText = StringVar()
@@ -120,13 +168,10 @@ def callback(*args): # TODO
   red = int(colorText.get()[1:3], 16)
   green = int(colorText.get()[3:5], 16)
   blue = int(colorText.get()[5:7], 16)
-  (hue, saturation, value) = colorsys.rgb_to_hsv(red/255, green/255, blue/255)
   redText.set(red)
   greenText.set(green)
   blueText.set(blue)
-  hueText.set(round(hue*360))
-  saturationText.set(round(saturation*100))
-  valueText.set(round(value*100))
+  rgb(0,0,0)
   colorPreview["bg"] = colorText.get()
 
 colorText.trace('w', callback)
@@ -136,11 +181,10 @@ colorText.set("#FFFFFF")
 colorLabel.grid(row=5, column=3, sticky=W)
 colorValue.grid(row=5, column=4, rowspan=1, columnspan=4, pady=5)
 
-# Palette
+# Palette Label
 paletteLabel = Label(window, text="Palette: ")
 paletteLabel.grid(row=6, column=3, sticky=W)
-
-
+# Palette Color Chart
 colorsFrame = Frame(window)
 for col in COLORS:
   for row in range(len(COLORS[col])):
